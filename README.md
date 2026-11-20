@@ -68,6 +68,13 @@ Cold-calling businesses is legal in most places, but robocall laws are strict. I
 
 You are still responsible for following the laws where you call. That includes scrubbing your list against the [National Do Not Call Registry](https://telemarketing.donotcall.gov/) if you call any sole proprietors on personal or cell numbers, and following your state's rules. This isn't legal advice.
 
+**Calling in Canada.** The CRTC's Unsolicited Telecommunications Rules apply:
+- Calls to businesses are exempt from the National Do Not Call List (DNCL), but you must still keep your own do-not-call list and honor requests within 14 days. The app handles this automatically.
+- If you call any sole proprietor on a personal or residential line, you need to register with the [National DNCL](https://lnnte-dncl.gc.ca/) and check numbers against it.
+- Automated or pre-recorded sales calls (ADAD rules) need the person's prior express consent, so use **Call (you talk)** for cold outreach.
+- Allowed hours are weekdays 9am–9:30pm and weekends 10am–6pm. The defaults (Mon–Fri, 9am–5pm) stay inside those.
+- Identify yourself and who you're calling for at the start of each call.
+
 ### Test call to your own phone
 
 Hear exactly what businesses will hear before you call anyone. In the dashboard, go to **Settings → Test call to my phone**, or run:
