@@ -4,9 +4,13 @@ Give it a list of local businesses. It builds each one a professional, mobile-fr
 
 ![Dashboard](docs/dashboard.png)
 
-| Plumber | Café | Mobile |
-|---|---|---|
-| ![](docs/site-plumber.png) | ![](docs/site-cafe.png) | ![](docs/site-mobile.png) |
+| Plumber | Barber |
+|---|---|
+| ![](docs/site-plumber.png) | ![](docs/site-barber.png) |
+| **Café** | **Restaurant** |
+| ![](docs/site-cafe.png) | ![](docs/site-restaurant.png) |
+
+<img src="docs/site-mobile.png" width="300" alt="Mobile view">
 
 It has **no dependencies**. You only need Node.js 18 or newer.
 
@@ -19,7 +23,7 @@ npm start                 # → http://localhost:3000
 
 1. **Add businesses** one at a time with the form, or paste or upload a CSV (see `examples/businesses.csv`).
 2. A website is generated right away for each business. Click **Preview** to see it.
-3. Click **📞 Call (you talk)** to phone the business.
+3. Click **Call (you talk)** to phone the business.
 
 To generate sites only, without the dashboard, run:
 
@@ -30,11 +34,14 @@ npm run generate -- examples/businesses.csv     # or a .json file
 
 ## The website generator
 
-- It detects the business type from the category (restaurant, café, plumber/HVAC/trades, auto, salon/barber, dental/medical, landscaping, cleaning, gym, retail, or general). Each type gets its own colors, fonts, wording, default services and trust badges.
-- If you only know the name, phone and city, it writes a tagline, description and services for you.
-- Each site is a single self-contained HTML file. It includes a click-to-call button, a sticky call bar on phones, a Google Map, opening hours, SEO meta tags and `LocalBusiness` structured data for Google.
-- When you edit a business, its site is regenerated.
-- Sites are served at `/sites/<slug>/`. If `PUBLIC_URL` is set, you can copy a public link to send to the owner. The `output/sites` folder can also be uploaded as-is to Netlify, Vercel, GitHub Pages or any web host.
+- **Designed per industry.** The category picks one of 12 design presets: restaurant, café, trades (plumber, electrician, HVAC, roofing…), auto, barber, salon & spa, dental/medical, landscaping, cleaning, fitness, retail, and general. Each preset has its own font pairing, color palette, layout details and copy.
+- **Professional by default.** Every site has real web typography (Google Fonts), line icons instead of emoji, a numbered services list, a contact card with opening hours, a trust strip for trades and services, a call-to-action band and a full footer. All color palettes are tested to pass WCAG AA contrast.
+- **Works from very little.** With only a name, phone number and city, it writes a natural headline, intro, services and About text. Supply your own `tagline`, `description` or `services` to override any of them. Services can include a description: `Leak repair: Same-day fixes for any leak`.
+- **Photos.** Add a `photo` column with an image URL and it is used in the hero. Without one, the hero shows the contact and hours card.
+- **Ready for phones and Google.** Phone layout with a sticky call button, click-to-call links, SEO meta tags and `LocalBusiness` structured data. A map and a "Get directions" button appear when there is a street address.
+- **One self-contained HTML file per site.** Sites are served at `/sites/<slug>/`. You can also upload the `output/sites` folder to Netlify, Vercel, GitHub Pages or any web host.
+
+> **Before you send a preview,** check the default wording with the owner. Phrases such as "Licensed & insured" or "Free estimates" are placeholders, so make sure they're true for that business, or edit them in the dashboard.
 
 ## The call center
 
@@ -44,8 +51,8 @@ There are two call modes:
 
 | Mode | How it works | Needs |
 |---|---|---|
-| **📞 Call (you talk)**, the "bridge" mode | Twilio rings **your** phone first. When you pick up, it dials the business and you pitch them live. The business sees your Twilio number. | `OWNER_PHONE` |
-| **🤖 Automated** | Twilio calls the business and plays a short pitch: *Press 1 to talk to you now, press 2 to get the preview link by text, press 9 to never be called again.* If an answering machine picks up, it leaves a voicemail with your callback number. | `PUBLIC_URL` **and** the business's consent (see below) |
+| **Call (you talk)**, the "bridge" mode | Twilio rings **your** phone first. When you pick up, it dials the business and you pitch them live. The business sees your Twilio number. | `OWNER_PHONE` |
+| **Automated** | Twilio calls the business and plays a short pitch: *Press 1 to talk to you now, press 2 to get the preview link by text, press 9 to never be called again.* If an answering machine picks up, it leaves a voicemail with your callback number. | `PUBLIC_URL` **and** the business's consent (see below) |
 
 All calls are listed in the **Call log** with status, outcome and key presses. Lead statuses update automatically (e.g. pressing 1 marks the business *interested*), and you can set them yourself: new → contacted → interested / callback / not interested → won.
 
@@ -60,6 +67,16 @@ Cold-calling businesses is legal in most places, but robocall laws are strict. I
 - Automated calls say up front that they're automated, name who is calling, and offer an opt-out. Texts include "Reply STOP".
 
 You are still responsible for following the laws where you call. That includes scrubbing your list against the [National Do Not Call Registry](https://telemarketing.donotcall.gov/) if you call any sole proprietors on personal or cell numbers, and following your state's rules. This isn't legal advice.
+
+### Test call to your own phone
+
+Hear exactly what businesses will hear before you call anyone. In the dashboard, go to **Settings → Test call to my phone**, or run:
+
+```bash
+npm run test-call -- +15551234567     # defaults to OWNER_PHONE
+```
+
+This needs Twilio keys, but it works even with `DRY_RUN=1`, because it only ever calls you. Key presses on a test call never change a lead's status or the do-not-call list.
 
 ### Going live with Twilio
 

@@ -87,6 +87,7 @@ function normalizeBusinessInput(input) {
     description: String(get('description', 'about', 'bio')).trim(),
     services: list(get('services', 'menu', 'offerings')),
     hours: list(get('hours', 'openinghours', 'businesshours')),
+    photo: String(get('photo', 'photourl', 'image', 'imageurl', 'heroimage')).trim(),
     timezone: String(get('timezone', 'tz')).trim(),
     consentToAutomatedCalls: bool(get('consenttoautomatedcalls', 'consent', 'automatedconsent')),
     notes: String(get('notes', 'note')).trim(),
