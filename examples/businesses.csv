@@ -1,0 +1,5 @@
+name,category,owner,phone,email,address,city,state,zip,services,hours,timezone
+Rivera Plumbing & Drain,Plumber,Luis Rivera,(512) 555-0142,luis@example.com,812 E 6th St,Austin,TX,78702,Leak detection;Water heater install;Drain cleaning;24/7 emergency service,Mon–Fri 7am–7pm;Sat 8am–2pm;Emergencies 24/7,America/Chicago
+The Daily Grind,Coffee shop,Maya Chen,503-555-0199,hello@example.com,2210 NE Alberta St,Portland,OR,97211,Single-origin pour-overs;House-made pastries;Breakfast sandwiches;Oat & almond milk,Mon–Fri 6:30am–4pm;Sat–Sun 7am–3pm,America/Los_Angeles
+Fade Masters Barbershop,Barber,Andre Wallace,404-555-0117,,455 Edgewood Ave SE,Atlanta,GA,30312,Classic cuts;Skin fades;Beard trims;Hot towel shave,Tue–Sat 9am–7pm,America/New_York
+Green Acres Landscaping,Landscaping,Tom Becker,614-555-0163,tom@example.com,,Columbus,OH,,,,America/New_York

@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Site Generator & Call Center</title>
+  <style>
+    :root { --bg: #f5f6f8; --card: #fff; --ink: #18202b; --muted: #687385; --line: #e3e6eb; --accent: #2f6fed; --ok: #18884f; --warn: #b7791f; --bad: #c53030; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); }
+    header { background: var(--ink); color: #fff; padding: 14px 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    header h1 { font-size: 18px; margin: 0; flex: 1; }
+    .pill { font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #ffffff22; }
+    .pill.live { background: var(--ok); }
+    .pill.dry { background: var(--warn); }
+    main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 60px; }
+    .tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+    .tabs button { background: transparent; border: 1px solid var(--line); }
+    .tabs button.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; margin-bottom: 16px; }
+    .card h2 { margin: 0 0 12px; font-size: 16px; }
+    button, .btn { font: inherit; border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 7px; padding: 6px 12px; cursor: pointer; text-decoration: none; display: inline-block; white-space: nowrap; }
+    button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    button.danger { color: var(--bad); }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    input, select, textarea { font: inherit; padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; width: 100%; background: #fff; color: var(--ink); }
+    textarea { min-height: 70px; resize: vertical; }
+    label { font-size: 13px; color: var(--muted); display: block; }
+    .form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 14px; }
+    .form .wide { grid-column: 1 / -1; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+    .muted { color: var(--muted); font-size: 13px; }
+    .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .why { font-size: 12px; color: var(--warn); max-width: 260px; }
+    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 8px; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: 90vw; }
+    .toast.show { opacity: 1; }
+    .toast.error { background: var(--bad); }
+    .empty { text-align: center; padding: 30px; color: var(--muted); }
+    details summary { cursor: pointer; font-weight: 600; }
+    .scroll { overflow-x: auto; }
+    .hidden { display: none; }
+    code { background: #eef1f5; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🏪 Local Business Site Generator & Call Center</h1>
+    <span id="mode" class="pill">…</span>
+  </header>
+  <main>
+    <div class="tabs">
+      <button data-tab="businesses" class="active">Businesses</button>
+      <button data-tab="calls">Call log</button>
+      <button data-tab="dnc">Do-not-call list</button>
+      <button data-tab="settings">Settings</button>
+    </div>
+
+    <!-- BUSINESSES -->
+    <section id="tab-businesses">
+      <div class="card">
+        <details id="add-details">
+          <summary id="form-title">➕ Add a business</summary>
+          <form id="biz-form" class="form" style="margin-top:14px">
+            <input type="hidden" name="id">
+            <div><label>Business name *</label><input name="name" required></div>
+            <div><label>Category (e.g. plumber, cafe, salon)</label><input name="category"></div>
+            <div><label>Owner / contact name</label><input name="ownerName"></div>
+            <div><label>Phone</label><input name="phone"></div>
+            <div><label>Email</label><input name="email" type="email"></div>
+            <div><label>Street address</label><input name="address"></div>
+            <div><label>City</label><input name="city"></div>
+            <div><label>State</label><input name="state"></div>
+            <div><label>ZIP</label><input name="zip"></div>
+            <div><label>Timezone (IANA, e.g. America/Chicago)</label><input name="timezone" placeholder="defaults to settings"></div>
+            <div class="wide"><label>Tagline (optional — we’ll write one)</label><input name="tagline"></div>
+            <div class="wide"><label>Description (optional — we’ll write one)</label><textarea name="description"></textarea></div>
+            <div><label>Services (one per line)</label><textarea name="services"></textarea></div>
+            <div><label>Hours (one per line, e.g. Mon–Fri 8am–6pm)</label><textarea name="hours"></textarea></div>
+            <div class="wide"><label><input type="checkbox" name="consentToAutomatedCalls" style="width:auto"> This business gave me permission to contact them with automated / pre-recorded calls</label></div>
+            <div class="wide row">
+              <button class="primary" type="submit" id="form-submit">Create & generate website</button>
+              <button type="button" id="form-cancel" class="hidden">Cancel edit</button>
+            </div>
+          </form>
+        </details>
+      </div>
+
+      <div class="card">
+        <details>
+          <summary>📄 Bulk import from CSV</summary>
+          <p class="muted">Paste CSV with a header row. Recognized columns: <code>name, category, owner, phone, email, address, city, state, zip, tagline, description, services, hours, timezone, consent</code>. Separate multiple services/hours with <code>;</code></p>
+          <textarea id="csv" rows="6" placeholder="name,category,phone,city,services&#10;Joe's Plumbing,Plumber,555-201-3344,Austin,Leak repair;Water heaters;Drain cleaning"></textarea>
+          <div class="row"><input type="file" id="csv-file" accept=".csv,text/csv" style="width:auto"><button class="primary" id="csv-import">Import & generate sites</button></div>
+        </details>
+      </div>
+
+      <div class="card">
+        <div class="row" style="margin:0 0 10px">
+          <h2 style="margin:0;flex:1">Your businesses <span id="biz-count" class="muted"></span></h2>
+          <select id="filter" style="width:auto"><option value="">All statuses</option></select>
+          <button id="regen-all">Regenerate all sites</button>
+        </div>
+        <div class="scroll"><table>
+          <thead><tr><th>Business</th><th>Phone</th><th>Status</th><th>Website</th><th>Call</th><th></th></tr></thead>
+          <tbody id="biz-rows"></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- CALLS -->
+    <section id="tab-calls" class="hidden">
+      <div class="card">
+        <h2>Call log</h2>
+        <div class="scroll"><table>
+          <thead><tr><th>When</th><th>Business</th><th>Mode</th><th>To</th><th>Status</th><th>Outcome</th><th>Details</th></tr></thead>
+          <tbody id="call-rows"></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- DNC -->
+    <section id="tab-dnc" class="hidden">
+      <div class="card">
+        <h2>Do-not-call list</h2>
+        <p class="muted">Numbers here are never called. People who press 9 on an automated call, or businesses you mark “do not call”, are added automatically.</p>
+        <form id="dnc-form" class="row"><input name="phone" placeholder="Phone number" style="max-width:260px"><button class="primary">Add</button></form>
+        <table style="margin-top:12px"><thead><tr><th>Phone</th><th>Reason</th><th>Added</th><th></th></tr></thead><tbody id="dnc-rows"></tbody></table>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="tab-settings" class="hidden">
+      <div class="card">
+        <h2>Settings</h2>
+        <p class="muted">Edit these in the <code>.env</code> file and restart the server.</p>
+        <table id="settings-rows"></table>
+      </div>
+    </section>
+  </main>
+  <div id="toast" class="toast"></div>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const label = (s) => String(s || '').replace(/_/g, ' ');
+let CONFIG = {};
+let BUSINESSES = [];
+
+async function api(method, url, body, raw) {
+  const res = await fetch(url, {
+    method,
+    headers: raw ? { 'Content-Type': 'text/csv' } : { 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : raw ? body : JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+
+function toast(msg, isError) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = `toast show${isError ? ' error' : ''}`;
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => (t.className = 'toast'), isError ? 6000 : 3000);
+}
+
+document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => {
+  document.querySelectorAll('.tabs button').forEach((x) => x.classList.toggle('active', x === b));
+  document.querySelectorAll('main > section').forEach((s) => s.classList.toggle('hidden', s.id !== `tab-${b.dataset.tab}`));
+  ({ calls: loadCalls, dnc: loadDnc, businesses: loadBusinesses })[b.dataset.tab]?.();
+}));
+
+async function loadConfig() {
+  CONFIG = await api('GET', '/api/config');
+  const m = $('#mode');
+  m.textContent = CONFIG.dryRun ? 'DRY RUN — calls are simulated' : 'LIVE — real calls';
+  m.className = `pill ${CONFIG.dryRun ? 'dry' : 'live'}`;
+  $('#filter').innerHTML = '<option value="">All statuses</option>' + CONFIG.statuses.map((s) => `<option value="${s}">${label(s)}</option>`).join('');
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  $('#settings-rows').innerHTML = [
+    ['Agency name', CONFIG.agencyName], ['Your name', CONFIG.yourName], ['Your phone (bridge calls ring here)', CONFIG.ownerPhone],
+    ['Public URL', CONFIG.publicUrl], ['Twilio configured', CONFIG.twilioConfigured ? 'Yes' : 'No'], ['Mode', CONFIG.dryRun ? 'Dry run' : 'Live'],
+    ['Calling hours (business local time)', CONFIG.callHours], ['Calling days', CONFIG.callDays.map((d) => days[d]).join(', ')],
+    ['Default timezone', CONFIG.defaultTimezone], ['Max attempts per business', CONFIG.maxAttempts],
+  ].map(([k, v]) => `<tr><th style="width:280px">${esc(k)}</th><td>${v === '' || v == null ? '<span class="muted">not set</span>' : esc(v)}</td></tr>`).join('');
+}
+
+async function loadBusinesses() {
+  BUSINESSES = await api('GET', '/api/businesses');
+  renderBusinesses();
+}
+
+function renderBusinesses() {
+  const f = $('#filter').value;
+  const list = BUSINESSES.filter((b) => !f || b.status === f);
+  $('#biz-count').textContent = `(${BUSINESSES.length})`;
+  if (!list.length) {
+    $('#biz-rows').innerHTML = `<tr><td colspan="6" class="empty">${BUSINESSES.length ? 'No businesses with this status.' : 'No businesses yet — add one above or import a CSV.'}</td></tr>`;
+    return;
+  }
+  $('#biz-rows').innerHTML = list.map((b) => {
+    const cb = b.callCheck.bridge, ca = b.callCheck.automated;
+    const why = !cb.ok ? `<div class="why">${esc(cb.reason)}</div>` : '';
+    return `<tr data-id="${b.id}">
+      <td><strong>${esc(b.name)}</strong><div class="muted">${esc([b.category, b.city].filter(Boolean).join(' · '))}${b.ownerName ? ` · ${esc(b.ownerName)}` : ''}</div></td>
+      <td>${esc(b.phone) || '<span class="muted">—</span>'}<div class="muted">${b.attempts} call${b.attempts === 1 ? '' : 's'}</div></td>
+      <td><select data-act="status" style="width:auto">${CONFIG.statuses.map((s) => `<option value="${s}" ${s === b.status ? 'selected' : ''}>${label(s)}</option>`).join('')}</select></td>
+      <td><a class="btn" href="${b.previewPath}" target="_blank">Preview ↗</a>${b.publicSiteUrl ? `<div><button data-act="copy" data-url="${esc(b.publicSiteUrl)}" style="margin-top:6px">Copy public link</button></div>` : ''}</td>
+      <td><div class="actions">
+        <button class="primary" data-act="call" data-mode="bridge" ${cb.ok ? '' : 'disabled'} title="${esc(cb.ok ? 'Rings your phone, then connects you to the business' : cb.reason)}">📞 Call (you talk)</button>
+        <button data-act="call" data-mode="automated" ${ca.ok ? '' : 'disabled'} title="${esc(ca.ok ? 'Plays an automated pitch with a 1/2/9 menu' : ca.reason)}">🤖 Automated</button>
+      </div>${why}</td>
+      <td><div class="actions"><button data-act="edit">Edit</button><button data-act="delete" class="danger">Delete</button></div></td>
+    </tr>`;
+  }).join('');
+}
+
+$('#filter').addEventListener('change', renderBusinesses);
+
+$('#biz-rows').addEventListener('click', async (ev) => {
+  const btn = ev.target.closest('button');
+  if (!btn) return;
+  const id = btn.closest('tr').dataset.id;
+  const b = BUSINESSES.find((x) => x.id === id);
+  try {
+    if (btn.dataset.act === 'call') {
+      const auto = btn.dataset.mode === 'automated';
+      const msg = auto ? `Place an automated call to ${b.name}?` : `Ring your phone (${CONFIG.ownerPhone}) and connect you to ${b.name}?`;
+      if (!confirm(msg)) return;
+      btn.disabled = true;
+      const { call } = await api('POST', `/api/businesses/${id}/call`, { mode: btn.dataset.mode });
+      toast(call.status === 'simulated' ? 'Simulated call logged (dry run)' : auto ? 'Calling the business…' : 'Calling your phone now — pick up!');
+      await loadBusinesses();
+    } else if (btn.dataset.act === 'delete') {
+      if (!confirm(`Delete ${b.name} and its website?`)) return;
+      await api('DELETE', `/api/businesses/${id}`);
+      toast('Deleted');
+      await loadBusinesses();
+    } else if (btn.dataset.act === 'edit') {
+      fillForm(b);
+    } else if (btn.dataset.act === 'copy') {
+      await navigator.clipboard.writeText(btn.dataset.url);
+      toast('Link copied');
+    }
+  } catch (err) { toast(err.message, true); btn.disabled = false; }
+});
+
+$('#biz-rows').addEventListener('change', async (ev) => {
+  if (ev.target.dataset.act !== 'status') return;
+  const id = ev.target.closest('tr').dataset.id;
+  try { await api('PUT', `/api/businesses/${id}`, { status: ev.target.value }); toast('Status updated'); await loadBusinesses(); }
+  catch (err) { toast(err.message, true); }
+});
+
+function fillForm(b) {
+  const f = $('#biz-form');
+  for (const el of f.elements) {
+    if (!el.name) continue;
+    const v = b[el.name];
+    if (el.type === 'checkbox') el.checked = !!v;
+    else el.value = Array.isArray(v) ? v.join('\n') : v ?? '';
+  }
+  $('#form-title').textContent = `✏️ Edit ${b.name}`;
+  $('#form-submit').textContent = 'Save & regenerate website';
+  $('#form-cancel').classList.remove('hidden');
+  $('#add-details').open = true;
+  $('#add-details').scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetForm() {
+  $('#biz-form').reset();
+  $('#biz-form').elements.id.value = '';
+  $('#form-title').textContent = '➕ Add a business';
+  $('#form-submit').textContent = 'Create & generate website';
+  $('#form-cancel').classList.add('hidden');
+}
+$('#form-cancel').addEventListener('click', resetForm);
+
+$('#biz-form').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const f = ev.target;
+  const data = {};
+  for (const el of f.elements) {
+    if (!el.name || el.name === 'id') continue;
+    data[el.name] = el.type === 'checkbox' ? el.checked : el.value;
+  }
+  data.services = data.services.split('\n').map((s) => s.trim()).filter(Boolean);
+  data.hours = data.hours.split('\n').map((s) => s.trim()).filter(Boolean);
+  try {
+    const id = f.elements.id.value;
+    if (id) { await api('PUT', `/api/businesses/${id}`, data); toast('Saved — website regenerated'); }
+    else { await api('POST', '/api/businesses', data); toast('Business added — website generated'); }
+    resetForm();
+    await loadBusinesses();
+  } catch (err) { toast(err.message, true); }
+});
+
+$('#csv-file').addEventListener('change', async (ev) => {
+  const file = ev.target.files[0];
+  if (file) $('#csv').value = await file.text();
+});
+$('#csv-import').addEventListener('click', async () => {
+  try {
+    const r = await api('POST', '/api/import-csv', $('#csv').value, true);
+    toast(`Imported ${r.created.length} businesses${r.skipped.length ? `, skipped ${r.skipped.length}` : ''}`);
+    $('#csv').value = '';
+    await loadBusinesses();
+  } catch (err) { toast(err.message, true); }
+});
+
+$('#regen-all').addEventListener('click', async () => {
+  try { const r = await api('POST', '/api/generate-all'); toast(`Regenerated ${r.generated} sites`); }
+  catch (err) { toast(err.message, true); }
+});
+
+async function loadCalls() {
+  const calls = await api('GET', '/api/calls');
+  $('#call-rows').innerHTML = calls.length ? calls.map((c) => `<tr>
+    <td>${new Date(c.createdAt).toLocaleString()}</td>
+    <td>${esc(c.businessName)}</td>
+    <td>${c.mode === 'bridge' ? '📞 you talk' : '🤖 automated'}</td>
+    <td>${esc(c.to)}</td>
+    <td>${esc(c.status)}${c.durationSec ? ` · ${c.durationSec}s` : ''}</td>
+    <td>${esc(label(c.outcome)) || '<span class="muted">—</span>'}</td>
+    <td class="muted">${c.error ? `<span style="color:var(--bad)">${esc(c.error)}</span><br>` : ''}${(c.events || []).map((e) => esc(e.note)).join('<br>')}</td>
+  </tr>`).join('') : '<tr><td colspan="7" class="empty">No calls yet.</td></tr>';
+}
+
+async function loadDnc() {
+  const list = await api('GET', '/api/dnc');
+  $('#dnc-rows').innerHTML = list.length ? list.map((d) => `<tr><td>${esc(d.phone)}</td><td>${esc(d.reason)}</td><td>${new Date(d.addedAt).toLocaleDateString()}</td>
+    <td><button class="danger" data-phone="${esc(d.phone)}">Remove</button></td></tr>`).join('') : '<tr><td colspan="4" class="empty">Empty.</td></tr>';
+}
+$('#dnc-form').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  try { await api('POST', '/api/dnc', { phone: ev.target.phone.value }); ev.target.reset(); await loadDnc(); toast('Added'); }
+  catch (err) { toast(err.message, true); }
+});
+$('#dnc-rows').addEventListener('click', async (ev) => {
+  const p = ev.target.dataset.phone;
+  if (!p || !confirm(`Remove ${p} from the do-not-call list?`)) return;
+  await api('DELETE', `/api/dnc/${encodeURIComponent(p)}`);
+  loadDnc();
+});
+
+loadConfig().then(loadBusinesses).catch((err) => toast(err.message, true));
+</script>
+</body>
+</html>

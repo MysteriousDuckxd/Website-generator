@@ -1,0 +1,16 @@
+[
+  {
+    "name": "Bella Napoli Pizzeria",
+    "category": "Restaurant",
+    "ownerName": "Gianni Russo",
+    "phone": "+1 718 555 0123",
+    "address": "301 Court St",
+    "city": "Brooklyn",
+    "state": "NY",
+    "zip": "11231",
+    "tagline": "Wood-fired Neapolitan pizza since 1998",
+    "services": ["Wood-fired pizza", "Fresh pasta", "Catering trays", "Delivery"],
+    "hours": ["Tue–Thu 11am–10pm", "Fri–Sat 11am–11pm", "Sun 12pm–9pm"],
+    "timezone": "America/New_York"
+  }
+]

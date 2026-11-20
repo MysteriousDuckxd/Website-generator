@@ -1,0 +1,14 @@
+{
+  "name": "local-business-site-generator",
+  "version": "1.0.0",
+  "description": "Generate websites for local businesses and call them about it from a built-in call center (Twilio).",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node src/server.js",
+    "generate": "node src/cli.js",
+    "test": "node --test test/*.test.js"
+  },
+  "license": "MIT"
+}
