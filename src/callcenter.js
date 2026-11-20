@@ -242,8 +242,65 @@ async function placeCall({ business, mode, store, config, now = new Date() }) {
   return call;
 }
 
-async function sendSms({ to, body, config }) {
-  if (config.dryRun) return { simulated: true };
+/**
+ * Call YOUR OWN phone so you can hear the automated pitch for a business.
+ * Skips calling-hours/attempt rules (you're calling yourself) and runs even
+ * when DRY_RUN=1, as long as Twilio is configured. With PUBLIC_URL set the
+ * 1/2/9 menu works too; key presses on a test call never change lead status.
+ */
+async function placeTestCall({ business, store, config, to, now = new Date() }) {
+  const target = toE164(to || config.ownerPhone, config.defaultCountryCode);
+  if (!target) {
+    const err = new Error('Set OWNER_PHONE in .env (or enter a number) for the test call');
+    err.status = 422;
+    throw err;
+  }
+  if (!config.twilioConfigured) {
+    const err = new Error('Twilio isn’t set up yet. Add TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN and TWILIO_FROM_NUMBER to .env');
+    err.status = 422;
+    throw err;
+  }
+  const sample = business || { name: 'Sample Business', slug: '' };
+  const call = {
+    id: newId(), test: true, businessId: business ? business.id : '', businessName: `TEST → ${sample.name}`,
+    mode: 'automated', to: target, status: 'queued', outcome: '', dryRun: false, createdAt: now.toISOString(), events: [],
+  };
+  const intro = say('This is a test call from your call center. Here is what a business will hear.') + '<Pause length="1"/>';
+  let inner;
+  if (config.publicUrl) {
+    // Reuse the real greeting (with working key menu) after the intro.
+    inner = intro + automatedGreetingTwiml(sample, config, call.id).replace(/^.*?<Response>|<\/Response>$/g, '');
+  } else {
+    const sender = config.yourName ? `${config.yourName} from ${config.agencyName}` : config.agencyName;
+    inner = intro + say(
+      `Hi, this is an automated call from ${sender}, calling for ${sample.name}. ` +
+      `We put together a free preview of a brand new website for your business, no strings attached. ` +
+      `Press 1 to speak with ${config.yourName || 'us'} now. Press 2 and we'll text you the link to your preview. ` +
+      `Press 9 and we won't call you again.`,
+    ) + '<Pause length="1"/>' + say('End of test. The key menu will work once PUBLIC_URL is set. Goodbye!');
+  }
+  const params = { To: target, From: config.twilio.fromNumber, Twiml: twiml(inner) };
+  if (config.publicUrl) {
+    params.StatusCallback = `${config.publicUrl}/twilio/status?callId=${call.id}`;
+    params.StatusCallbackEvent = 'initiated ringing answered completed';
+  }
+  store.calls.push(call);
+  try {
+    const res = await twilioRequest(config, 'Calls', params);
+    call.twilioSid = res.sid;
+    call.status = res.status || 'queued';
+  } catch (err) {
+    call.status = 'failed';
+    call.error = err.message;
+    store.save();
+    throw err;
+  }
+  store.save();
+  return call;
+}
+
+async function sendSms({ to, body, config, force = false }) {
+  if (config.dryRun && !force) return { simulated: true };
   return twilioRequest(config, 'Messages', { To: to, From: config.twilio.fromNumber, Body: body });
 }
 
@@ -256,6 +313,7 @@ module.exports = {
   automatedGatherTwiml,
   validTwilioSignature,
   placeCall,
+  placeTestCall,
   sendSms,
   siteUrl,
   spellPhone,

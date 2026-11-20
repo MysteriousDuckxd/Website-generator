@@ -143,6 +143,11 @@ function createApp({ store, config }) {
 
   route('GET', '/api/calls', () => [...store.calls].reverse());
 
+  route('POST', '/api/test-call', async ({ body }) => {
+    const business = body.businessId ? store.findBusiness(body.businessId) : store.businesses[0];
+    return { call: await cc.placeTestCall({ business, store, config, to: body.phone }) };
+  });
+
   route('GET', '/api/dnc', () => store.dnc);
   route('POST', '/api/dnc', ({ body }) => {
     const phone = toE164(body.phone, config.defaultCountryCode);
@@ -183,7 +188,7 @@ function createApp({ store, config }) {
     const result = cc.automatedGatherTwiml(business, config, body.Digits, { noInput: url.searchParams.has('noinput') });
     call.outcome = result.outcome;
     call.events.push({ at: new Date().toISOString(), note: `pressed ${body.Digits || 'nothing'} → ${result.outcome}` });
-    if (business.id) {
+    if (business.id && !call.test) {
       if (result.outcome === 'interested' || result.outcome === 'sent_link') business.status = 'interested';
       if (result.outcome === 'opted_out') {
         business.status = 'do_not_call';
@@ -194,7 +199,7 @@ function createApp({ store, config }) {
       const link = cc.siteUrl(business, config);
       const text = `Hi from ${config.agencyName}! Here's the free website preview we made for ${business.name}: ${link}` +
         `${config.ownerPhone ? ` Questions? Call ${config.ownerPhone}.` : ''} Reply STOP to opt out.`;
-      cc.sendSms({ to: call.to, body: text, config }).catch((err) => call.events.push({ at: new Date().toISOString(), note: `SMS failed: ${err.message}` }));
+      cc.sendSms({ to: call.to, body: text, config, force: call.test }).catch((err) => call.events.push({ at: new Date().toISOString(), note: `SMS failed: ${err.message}` }));
     }
     store.save();
     return xml(result.twiml);

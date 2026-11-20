@@ -138,6 +138,15 @@
         <p class="muted">Edit these in the <code>.env</code> file and restart the server.</p>
         <table id="settings-rows"></table>
       </div>
+      <div class="card">
+        <h2>📞 Test call to my phone</h2>
+        <p class="muted">Calls <strong>you</strong> and plays the automated pitch, so you can hear what businesses will hear. Works even in dry-run mode once Twilio is set up.</p>
+        <div class="row">
+          <input id="test-phone" placeholder="Your phone (defaults to OWNER_PHONE)" style="max-width:260px">
+          <select id="test-biz" style="max-width:260px"></select>
+          <button class="primary" id="test-call">Call me now</button>
+        </div>
+      </div>
     </section>
   </main>
   <div id="toast" class="toast"></div>
@@ -171,7 +180,7 @@ function toast(msg, isError) {
 document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => {
   document.querySelectorAll('.tabs button').forEach((x) => x.classList.toggle('active', x === b));
   document.querySelectorAll('main > section').forEach((s) => s.classList.toggle('hidden', s.id !== `tab-${b.dataset.tab}`));
-  ({ calls: loadCalls, dnc: loadDnc, businesses: loadBusinesses })[b.dataset.tab]?.();
+  ({ calls: loadCalls, dnc: loadDnc, businesses: loadBusinesses, settings: fillTestBiz })[b.dataset.tab]?.();
 }));
 
 async function loadConfig() {
@@ -347,7 +356,22 @@ $('#dnc-rows').addEventListener('click', async (ev) => {
   loadDnc();
 });
 
-loadConfig().then(loadBusinesses).catch((err) => toast(err.message, true));
+$('#test-call').addEventListener('click', async (ev) => {
+  ev.target.disabled = true;
+  try {
+    await api('POST', '/api/test-call', { phone: $('#test-phone').value, businessId: $('#test-biz').value });
+    toast('Calling you now — pick up!');
+  } catch (err) { toast(err.message, true); }
+  ev.target.disabled = false;
+});
+
+function fillTestBiz() {
+  $('#test-biz').innerHTML = BUSINESSES.length
+    ? BUSINESSES.map((b) => `<option value="${b.id}">Pitch for: ${esc(b.name)}</option>`).join('')
+    : '<option value="">Pitch for: Sample Business</option>';
+}
+
+loadConfig().then(loadBusinesses).then(fillTestBiz).catch((err) => toast(err.message, true));
 </script>
 </body>
 </html>

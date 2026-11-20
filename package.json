@@ -8,6 +8,7 @@
   "scripts": {
     "start": "node src/server.js",
     "generate": "node src/cli.js",
+    "test-call": "node src/test-call.js",
     "test": "node --test test/*.test.js"
   },
   "license": "MIT"

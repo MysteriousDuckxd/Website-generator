@@ -79,3 +79,18 @@ test('validates Twilio signatures', () => {
   assert.equal(cc.validTwilioSignature('secret', sig, url, params), true);
   assert.equal(cc.validTwilioSignature('secret', sig, url, { ...params, Digits: '9' }), false);
 });
+
+test('test call needs Twilio and a phone, and builds a playable script', async () => {
+  const store = tmpStore();
+  await assert.rejects(cc.placeTestCall({ store, config: { ...baseConfig, twilioConfigured: false } }), /Twilio/);
+  await assert.rejects(cc.placeTestCall({ store, config: { ...baseConfig, ownerPhone: '' } }), /OWNER_PHONE/);
+  const orig = global.fetch;
+  let sent;
+  global.fetch = async (url, opts) => { sent = new URLSearchParams(opts.body); return { ok: true, json: async () => ({ sid: 'CA123', status: 'queued' }) }; };
+  try {
+    const call = await cc.placeTestCall({ store, config: { ...baseConfig, twilioConfigured: true, publicUrl: '' } });
+    assert.equal(call.twilioSid, 'CA123');
+    assert.equal(sent.get('To'), '+15125550100');
+    assert.match(sent.get('Twiml'), /^<\?xml.*<Response><Say.*test call.*Sample Business.*<\/Response>$/);
+  } finally { global.fetch = orig; }
+});
