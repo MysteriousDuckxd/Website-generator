@@ -158,12 +158,26 @@ async function twilioRequest(config, resource, params) {
       Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString('base64')}`,
       'Content-Type': 'application/x-www-form-urlencoded',
     },
-    body: new URLSearchParams(params),
+    body: new URLSearchParams(Object.entries(params).filter(([k, v]) => !k.startsWith('__') && v !== undefined)),
   });
   const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(`Twilio ${res.status}: ${body.message || 'request failed'}`);
+  if (!res.ok) {
+    // Twilio's free trial rejects some call options (inline Twiml, status
+    // callbacks, machine detection). Retry once with only To/From/Url, serving
+    // inline TwiML through Twilio's echo twimlet instead.
+    if (resource === 'Calls' && res.status === 400 && /trial accounts have limited parameter access/i.test(body.message || '') && !params.__trialRetry) {
+      const minimal = { To: params.To, From: params.From, Url: params.Url || trialTwimlUrl(params.Twiml), __trialRetry: true };
+      const retry = await twilioRequest(config, resource, minimal);
+      retry.trialFallback = true;
+      return retry;
+    }
+    throw new Error(`Twilio ${res.status}: ${body.message || 'request failed'}`);
+  }
   return body;
 }
+
+/** A URL that returns the given TwiML (Twilio's hosted echo twimlet). */
+const trialTwimlUrl = (twimlXml) => `https://twimlets.com/echo?Twiml=${encodeURIComponent(twimlXml)}`;
 
 /** https://www.twilio.com/docs/usage/security#validating-requests */
 function validTwilioSignature(authToken, signature, url, params = {}) {
@@ -232,6 +246,7 @@ async function placeCall({ business, mode, store, config, now = new Date() }) {
     const res = await twilioRequest(config, 'Calls', params);
     call.twilioSid = res.sid;
     call.status = res.status || 'queued';
+    if (res.trialFallback) call.events.push({ at: new Date().toISOString(), note: 'Twilio trial: sent with basic options only (no live status updates or machine detection)' });
   } catch (err) {
     call.status = 'failed';
     call.error = err.message;
@@ -289,6 +304,7 @@ async function placeTestCall({ business, store, config, to, now = new Date() }) 
     const res = await twilioRequest(config, 'Calls', params);
     call.twilioSid = res.sid;
     call.status = res.status || 'queued';
+    if (res.trialFallback) call.events.push({ at: new Date().toISOString(), note: 'Twilio trial: sent with basic options only (no live status updates or machine detection)' });
   } catch (err) {
     call.status = 'failed';
     call.error = err.message;
@@ -312,6 +328,7 @@ module.exports = {
   automatedGreetingTwiml,
   automatedGatherTwiml,
   validTwilioSignature,
+  trialTwimlUrl,
   placeCall,
   placeTestCall,
   sendSms,

@@ -94,3 +94,24 @@ test('test call needs Twilio and a phone, and builds a playable script', async (
     assert.match(sent.get('Twiml'), /^<\?xml.*<Response><Say.*test call.*Sample Business.*<\/Response>$/);
   } finally { global.fetch = orig; }
 });
+
+test('falls back to a twimlet URL when a Twilio trial rejects inline Twiml', async () => {
+  const store = tmpStore();
+  const orig = global.fetch;
+  const sent = [];
+  global.fetch = async (url, opts) => {
+    const p = new URLSearchParams(opts.body);
+    sent.push(p);
+    if (p.has('Twiml')) return { ok: false, status: 400, json: async () => ({ message: 'Invalid or disallowed parameters provided - trial accounts have limited parameter access, upgrade your account' }) };
+    return { ok: true, json: async () => ({ sid: 'CA9', status: 'queued' }) };
+  };
+  try {
+    const call = await cc.placeTestCall({ store, config: { ...baseConfig, twilioConfigured: true, publicUrl: '' } });
+    assert.equal(sent.length, 2);
+    assert.deepEqual([...sent[1].keys()].sort(), ['From', 'To', 'Url']);
+    assert.match(sent[1].get('Url'), /^https:\/\/twimlets\.com\/echo\?Twiml=%3C%3Fxml/);
+    assert.equal(decodeURIComponent(sent[1].get('Url').split('Twiml=')[1]), sent[0].get('Twiml'));
+    assert.equal(call.twilioSid, 'CA9');
+    assert.match(call.events[0].note, /trial/);
+  } finally { global.fetch = orig; }
+});
