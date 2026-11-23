@@ -9,6 +9,7 @@
     "start": "node src/server.js",
     "generate": "node src/cli.js",
     "test-call": "node src/test-call.js",
+    "build:html": "node scripts/build-standalone.js",
     "test": "node --test test/*.test.js"
   },
   "license": "MIT"

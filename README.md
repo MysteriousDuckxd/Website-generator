@@ -14,6 +14,12 @@ Give it a list of local businesses. It builds each one a professional, mobile-fr
 
 It has **no dependencies**. You only need Node.js 18 or newer.
 
+## Just want the website generator?
+
+Open **[`dist/website-generator.html`](dist/website-generator.html)** in any browser. It's a single file, with no install and no server. Type in a business, or import a CSV, and watch the live preview. Then download one site as HTML, or all of them as a .zip. Businesses you save stay in that browser.
+
+The file is built from the same code as the app, so the sites are identical. Run `npm run build:html` to rebuild it after changing `src/generator.js`.
+
 ## Quick start
 
 ```bash
